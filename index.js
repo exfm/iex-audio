@@ -1,5 +1,4 @@
 (function(){
-
 "use strict";
 
 // constructor
@@ -103,8 +102,9 @@ IEXAudio.prototype.errorHandler = function(event){
 
 // register plugin with cordova
 // check if we've got require
-if(window.cordova){
-    window.cordova.addConstructor(function(){
+var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
+if(cordovaRef){
+    cordovaRef.addConstructor(function(){
         if (!window.plugins) {
             window.plugins = {};
         } 
