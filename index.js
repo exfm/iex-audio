@@ -25,7 +25,7 @@ function IEXAudio(el, opts){
     
     this.addGettersAndSetters();
     // register event listener with native
-    cordovaRef.exec(this.eventHandler, this.errorHandler, "IEXAudio", "eventHandler", []);
+    cordovaRef.exec(this.eventHandler.bind(this), this.errorHandler.bind(this), "IEXAudio", "eventHandler", []);
     console.log('IEXAudio installed');
 }
 
@@ -98,7 +98,6 @@ IEXAudio.prototype.eventHandler = function(event){
             
         break;
     }
-    console.log(this);
     this.emit(event.name,
         {
             'target': 
