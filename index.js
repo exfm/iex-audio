@@ -3,18 +3,27 @@
 
 // constructor
 function IEXAudio(el, opts){
+    console.log('iex-audio constructor');
     
     var eventEmitter = new EventEmitter();
     $.extend(this, eventEmitter);
     
-    // The data we send on triggered events
-    this.eventObj = {
-        'src': "",
-        'currentTime': 0,
-        'duration': 0,
-        'paused': true
-    }
+    //
+    this.paused = true;
     
+    //
+    this.theSrc = '';
+    
+    //
+    this.theCurrentTime = 0;
+    
+    // 
+    this.duration = 0;
+    
+    //
+    this.volume = 1;
+    
+    this.addGettersAndSetters();
     // register event listener with native
     cordovaRef.exec(this.eventHandler, this.errorHandler, "IEXAudio", "eventHandler", []);
     console.log('IEXAudio installed');
@@ -26,10 +35,10 @@ IEXAudio.prototype.addGettersAndSetters = function(){
     // audio source
     Object.defineProperty(this, "src", {
         get: function() {
-            return this.eventObj.src;
+            return this.theSrc;
         },
         set: function(url) {
-            this.eventObj.src = url;
+            this.theSrc = url;
             cordovaRef.exec(null, null, "IEXAudio", "setSource", [url]);
         },
         enumerable : true
@@ -38,7 +47,7 @@ IEXAudio.prototype.addGettersAndSetters = function(){
     // audio currentTime
     Object.defineProperty(this, "currentTime", {
         get: function() {
-            return this.eventObj.currentTime;
+            return this.theCurrentTime;
         },
         set: function(time) {
             cordovaRef.exec(null, null, "IEXAudio", "setCurrentTime", [time]);
@@ -71,16 +80,16 @@ IEXAudio.prototype.nowPlaying = function(artist, title, album, imageUrl){
 IEXAudio.prototype.eventHandler = function(event){
     switch (event.name){
         case 'timeupdate':
-            this.eventObj.currentTime = event.currentTime;
+            this.theCurrentTime = event.currentTime;
         break;
         case 'durationchanged':
-            this.eventObj.duration = event.duration;
+            this.duration = event.duration;
         break;
         case 'pause':
-            this.eventObj.paused = true;
+            this.paused = true;
         break;
         case 'playing':
-            this.eventObj.paused = false;
+            this.paused = false;
         break;
         case 'error':
             throw new TypeError(JSON.stringify(event));
@@ -89,10 +98,17 @@ IEXAudio.prototype.eventHandler = function(event){
             
         break;
     }
-    $(this).trigger(
+    console.log(this);
+    this.emit(event.name,
         {
-            'type': event.name,
-            'target': this.eventObj
+            'target': 
+                {
+                    'src': this.theSrc,
+                    'paused': this.paused,
+                    'currentTime': this.theCurrentTime,
+                    'duration': this.duration,
+                    'volume': this.volume
+                }
         }
     );
 }
@@ -123,5 +139,5 @@ if(cordovaRef){
 else{
     throw new TypeError("Cordova not found");
 }
-
+console.log('iex-audio');
 }()); // end wrapper
