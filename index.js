@@ -4,6 +4,9 @@
 // constructor
 function IEXAudio(el, opts){
     
+    var eventEmitter = new EventEmitter();
+    $.extend(this, eventEmitter);
+    
     // The data we send on triggered events
     this.eventObj = {
         'src': "",
