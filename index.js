@@ -5,6 +5,7 @@
 function IEXAudio(el, opts){
     console.log('iex-audio constructor');
     
+    var EventEmitter = require('event-emitter');
     var eventEmitter = new EventEmitter();
     $.extend(this, eventEmitter);
     
