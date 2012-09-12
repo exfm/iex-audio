@@ -8,25 +8,30 @@ function IEXAudio(el, opts){
     var eventEmitter = new EventEmitter();
     $.extend(this, eventEmitter);
     
-    //
+    // boolean to keep paused state
     this.paused = true;
     
-    //
+    // internal var for audio source
     this.theSrc = '';
     
-    //
+    // internal var for audio currentTime
     this.theCurrentTime = 0;
     
-    // 
+    // audio duration
     this.duration = 0;
     
-    //
+    // audio volume
     this.volume = 1;
     
     this.addGettersAndSetters();
     // register event listener with native
     cordovaRef.exec(this.eventHandler.bind(this), this.errorHandler.bind(this), "IEXAudio", "eventHandler", []);
     console.log('IEXAudio installed');
+}
+
+// send to native
+IEXAudio.prototype.sendToNative = function(func, vars){
+    cordovaRef.exec(null, null, "IEXAudio", func, vars);
 }
 
 // getters & setters
@@ -39,7 +44,7 @@ IEXAudio.prototype.addGettersAndSetters = function(){
         },
         set: function(url) {
             this.theSrc = url;
-            cordovaRef.exec(null, null, "IEXAudio", "setSource", [url]);
+            IEXAudio.prototype.sendToNative("setSource", [url]);
         },
         enumerable : true
     });
@@ -50,7 +55,7 @@ IEXAudio.prototype.addGettersAndSetters = function(){
             return this.theCurrentTime;
         },
         set: function(time) {
-            cordovaRef.exec(null, null, "IEXAudio", "setCurrentTime", [time]);
+            IEXAudio.prototype.sendToNative("setCurrentTime", [time]);
         },
         enumerable : true
     });
@@ -58,22 +63,22 @@ IEXAudio.prototype.addGettersAndSetters = function(){
 
 // load a new song
 IEXAudio.prototype.load = function(){
-    cordovaRef.exec(null, null, "IEXAudio", "load", []);
+    IEXAudio.prototype.sendToNative("load", []);
 };
 
 // play a song
 IEXAudio.prototype.play = function(){
-    cordovaRef.exec(null, null, "IEXAudio", "play", []);
+    IEXAudio.prototype.sendToNative("play", []);
 };
 
 // pause the current playing song
 IEXAudio.prototype.pause = function(){
-    cordovaRef.exec(null, null, "IEXAudio", "pause", []);
+    IEXAudio.prototype.sendToNative("pause", []);
 };
 
 // set nowPlaying. Sets lock screen on iOS
 IEXAudio.prototype.nowPlaying = function(artist, title, album, imageUrl){
-    cordovaRef.exec(null, null, "IEXAudio", "nowPlaying", [artist, title, album, imageUrl]);
+    IEXAudio.prototype.sendToNative("nowPlaying", [artist, title, album, imageUrl]);
 };
 
 // listen for events from native. emit out to js listeners
