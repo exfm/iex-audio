@@ -5,11 +5,8 @@
 
 #import <AVFoundation/AVFoundation.h>
 
-#ifdef CORDOVA_FRAMEWORK
 #import <Cordova/CDVPlugin.h>
-#else
-#import "Cordova.h"
-#endif
+
 
 typedef enum {
     IEXAudioPlayerPlaying,
