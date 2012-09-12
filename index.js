@@ -1,12 +1,17 @@
 (function(){
-"use strict";
+
 
 // constructor
 function IEXAudio(el, opts){
     console.log('iex-audio constructor');
-    
-    var EventEmitter = require('event-emitter');
-    var eventEmitter = new EventEmitter();
+    var eventEmitter;
+    if(typeof module !== "undefined"){
+        var EventEmitter = require('event-emitter');
+        eventEmitter = new EventEmitter();
+    }
+    else{
+        eventEmitter = new window.EventEmitter();
+    }
     $.extend(this, eventEmitter);
     
     // boolean to keep paused state
@@ -25,6 +30,7 @@ function IEXAudio(el, opts){
     this.volume = 1;
     
     this.addGettersAndSetters();
+    
     // register event listener with native
     cordovaRef.exec(this.eventHandler.bind(this), this.errorHandler.bind(this), "IEXAudio", "eventHandler", []);
     console.log('IEXAudio installed');
