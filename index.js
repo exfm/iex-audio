@@ -125,6 +125,7 @@ IEXAudio.prototype.errorHandler = function(event){
 
 // register plugin with cordova
 // check if we've got require
+/*
 var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
 if(cordovaRef){
     cordovaRef.addConstructor(function(){
@@ -142,6 +143,14 @@ if(cordovaRef){
 }
 else{
     throw new TypeError("Cordova not found");
+}
+*/
+// check if we've got require
+if(typeof module !== "undefined"){
+    module.exports = IEXAudio;
+}
+else{
+    window.IEXAudio = IEXAudio;
 }
 console.log('iex-audio');
 }()); // end wrapper
