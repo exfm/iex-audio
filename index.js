@@ -31,6 +31,7 @@ function IEXAudio(el, opts){
     
     this.addGettersAndSetters();
     
+        
     // register event listener with native
     cordovaRef.exec(this.eventHandler.bind(this), this.errorHandler.bind(this), "IEXAudio", "eventHandler", []);
     console.log('IEXAudio installed');
@@ -153,6 +154,7 @@ else{
 }
 */
 // check if we've got require
+var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
 if(typeof module !== "undefined"){
     module.exports = IEXAudio;
 }
