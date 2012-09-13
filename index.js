@@ -2,7 +2,7 @@
 
 
 // constructor
-function IEXAudio(el, opts){
+function IEXAudio(){
     console.log('iex-audio constructor');
     var eventEmitter;
     if(typeof module !== "undefined"){
@@ -31,15 +31,15 @@ function IEXAudio(el, opts){
     
     this.addGettersAndSetters();
     
-        
+    console.log('calling cordova');    
     // register event listener with native
-    cordovaRef.exec(this.eventHandler.bind(this), this.errorHandler.bind(this), "IEXAudio", "eventHandler", []);
+    window.cordova.exec(this.eventHandler.bind(this), this.errorHandler.bind(this), "IEXAudio", "eventHandler", []);
     console.log('IEXAudio installed');
 }
 
 // send to native
 IEXAudio.prototype.sendToNative = function(func, vars){
-    cordovaRef.exec(null, null, "IEXAudio", func, vars);
+    window.cordova.exec(null, null, "IEXAudio", func, vars);
 }
 
 // getters & setters
@@ -91,6 +91,7 @@ IEXAudio.prototype.nowPlaying = function(artist, title, album, imageUrl){
 
 // listen for events from native. emit out to js listeners
 IEXAudio.prototype.eventHandler = function(event){
+    console.log(event);
     switch (event.name){
         case 'timeupdate':
             this.theCurrentTime = event.currentTime;
@@ -127,39 +128,17 @@ IEXAudio.prototype.eventHandler = function(event){
 
 // listen for errors from native. Throw js error
 IEXAudio.prototype.errorHandler = function(event){
+    console.log(event);
     throw new TypeError(event.error);
 }
 
 
-// register plugin with cordova
-// check if we've got require
-/*
-var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
-if(cordovaRef){
-    cordovaRef.addConstructor(function(){
-        if (!window.plugins) {
-            window.plugins = {};
-        } 
-    	window.plugins.IEXAudio = IEXAudio;
-    	if(typeof module !== "undefined"){
-            module.exports = window.plugins.IEXAudio;
-        }
-        else{
-            window.IEXAudio = window.plugins.IEXAudio;
-        }
-    });
-}
-else{
-    throw new TypeError("Cordova not found");
-}
-*/
-// check if we've got require
-var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
 if(typeof module !== "undefined"){
     module.exports = IEXAudio;
 }
 else{
     window.IEXAudio = IEXAudio;
 }
+
 console.log('iex-audio');
 }()); // end wrapper
