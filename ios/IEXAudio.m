@@ -357,7 +357,7 @@ void audioRouteChangeListenerCallback (void *inUserData,
 
 - (void)observe_AVPlayer_rate {
     if (player.rate > 0.0) {
-        [self sendEventToCallback:kIEXAudioEventPlaying];
+        [self sendEventToCallback:kIEXAudioEventPlay];
     } else if (player.rate == 0.0 && self.status == IEXAudioPlayerPaused) {
         [self sendEventToCallback:kIEXAudioEventPaused];
     }

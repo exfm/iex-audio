@@ -103,6 +103,9 @@ IEXAudio.prototype.eventHandler = function(event){
         case 'playing':
             this.paused = false;
         break;
+        case 'play':
+            this.paused = false;
+        break;
         case 'error':
             throw new TypeError(JSON.stringify(event));
         break;
