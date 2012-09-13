@@ -118,9 +118,6 @@ IEXAudio.prototype.eventHandler = function(event){
             this.buffered.start = event.ranges[0].start;
             this.buffered.end = event.ranges[0].duration;
         break;
-        case 'error':
-            throw new TypeError(JSON.stringify(event));
-        break;
         default:
             
         break;
