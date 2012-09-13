@@ -3,7 +3,6 @@
 
 // constructor
 function IEXAudio(){
-    console.log('iex-audio constructor');
     var eventEmitter;
     if(typeof module !== "undefined"){
         var EventEmitter = require('event-emitter');
@@ -31,7 +30,7 @@ function IEXAudio(){
     
     this.addGettersAndSetters();
     
-    console.log('calling cordova');    
+      
     // register event listener with native
     window.cordova.exec(this.eventHandler.bind(this), this.errorHandler.bind(this), "IEXAudio", "eventHandler", []);
     console.log('IEXAudio installed');
@@ -91,7 +90,6 @@ IEXAudio.prototype.nowPlaying = function(artist, title, album, imageUrl){
 
 // listen for events from native. emit out to js listeners
 IEXAudio.prototype.eventHandler = function(event){
-    console.log(event);
     switch (event.name){
         case 'timeupdate':
             this.theCurrentTime = event.currentTime;
@@ -128,7 +126,6 @@ IEXAudio.prototype.eventHandler = function(event){
 
 // listen for errors from native. Throw js error
 IEXAudio.prototype.errorHandler = function(event){
-    console.log(event);
     throw new TypeError(event.error);
 }
 
@@ -140,5 +137,4 @@ else{
     window.IEXAudio = IEXAudio;
 }
 
-console.log('iex-audio');
 }()); // end wrapper
