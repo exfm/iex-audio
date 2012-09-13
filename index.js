@@ -28,6 +28,13 @@ function IEXAudio(){
     // audio volume
     this.volume = 1;
     
+    // audio buffered array
+    this.buffered = {
+        'length': 0,
+        'start': 0,
+        'end': 0
+    };
+    
     this.addGettersAndSetters();
     
       
@@ -106,6 +113,11 @@ IEXAudio.prototype.eventHandler = function(event){
         case 'play':
             this.paused = false;
         break;
+        case 'progress':
+            this.buffered.length = event.ranges.length;
+            this.buffered.start = event.ranges[0].start;
+            this.buffered.end = event.ranges[0].duration;
+        break;
         case 'error':
             throw new TypeError(JSON.stringify(event));
         break;
@@ -121,7 +133,8 @@ IEXAudio.prototype.eventHandler = function(event){
                     'paused': this.paused,
                     'currentTime': this.theCurrentTime,
                     'duration': this.duration,
-                    'volume': this.volume
+                    'volume': this.volume,
+                    'buffered': this.buffered
                 }
         }
     );
