@@ -136,8 +136,8 @@ void audioRouteChangeListenerCallback (void *inUserData,
     NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:
                                @"load", @"method",
                                kIEXAudioEventError, @"name",
-                               @"status", code,
-                               @"message", message,
+                               code, @"status",
+                               message, @"message",
                                nil];
     [self sendDictionaryToCallback:errorDict];
 }
