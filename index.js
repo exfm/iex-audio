@@ -69,7 +69,7 @@ IEXAudio.prototype.addGettersAndSetters = function(){
             return this.theCurrentTime;
         },
         set: function(time) {
-            IEXAudio.prototype.sendToNative("setCurrentTime", [time]);
+            IEXAudio.prototype.sendToNative("seek", [time]);
         },
         enumerable : true
     });
