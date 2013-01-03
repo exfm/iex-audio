@@ -139,7 +139,7 @@ IEXAudio.prototype.eventHandler = function(event){
 
 // listen for errors from native. Throw js error
 IEXAudio.prototype.errorHandler = function(event){
-    throw new TypeError(event.error);
+    console.log('error', event);
 }
 
 
