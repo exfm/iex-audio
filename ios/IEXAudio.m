@@ -4,6 +4,7 @@
 //
 
 #import "IEXAudio.h"
+#import "NSString+Base64.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import <objc/runtime.h>
@@ -181,29 +182,31 @@ void audioRouteChangeListenerCallback (void *inUserData,
 }
 
 - (void)destroyPlayer {
-    if (playerItem) {
-        [[NSNotificationCenter defaultCenter] removeObserver:self 
-                                                        name:AVPlayerItemDidPlayToEndTimeNotification
-                                                      object:playerItem];
-        
-        [playerItem removeObserver:self forKeyPath:@"status"];
-        [playerItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
-        [playerItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
-        [playerItem release];
-        playerItem = nil;
-    }
-    
-    if (player) {
-        if (timeObserver) {
-            [player removeTimeObserver:timeObserver];
-            [timeObserver release];
-            timeObserver = nil;
+    @synchronized(self) {
+        if (playerItem) {
+            [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                            name:AVPlayerItemDidPlayToEndTimeNotification
+                                                          object:playerItem];
+            
+            [playerItem removeObserver:self forKeyPath:@"status"];
+            [playerItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
+            [playerItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
+            [playerItem release];
+            playerItem = nil;
         }
         
-        [player removeObserver:self forKeyPath:@"status"];
-        [player removeObserver:self forKeyPath:@"rate"];
-        [player release];
-        player = nil;
+        if (player) {
+            if (timeObserver) {
+                [player removeTimeObserver:timeObserver];
+                [timeObserver release];
+                timeObserver = nil;
+            }
+            
+            [player removeObserver:self forKeyPath:@"status"];
+            [player removeObserver:self forKeyPath:@"rate"];
+            [player release];
+            player = nil;
+        }
     }
 }
 
@@ -245,29 +248,31 @@ void audioRouteChangeListenerCallback (void *inUserData,
                          completionHandler:^{
                              NSError *error = nil;
                              AVKeyValueStatus trackStatus = [asset statusOfValueForKey:@"tracks" error:&error];
-                             if (trackStatus == AVKeyValueStatusLoaded) {
+                             if (asset.readable && trackStatus == AVKeyValueStatusLoaded) {
                                  NSLog(@"Loaded: %@", self.url);
                                  
-                                 self.playerItem = [AVPlayerItem playerItemWithAsset:asset];
-                                 self.player = [AVPlayer playerWithPlayerItem:playerItem];
-                                 
-                                 [self registerTimeObserver];
-                                 [self loadDuration];
-                                 
-                                 [player addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
-                                 [player addObserver:self forKeyPath:@"rate" options:NSKeyValueObservingOptionNew context:nil];   
-                                                 
-                                 [playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
-                                 [playerItem addObserver:self forKeyPath:@"playbackLikelyToKeepUp" options:NSKeyValueObservingOptionNew context:nil];
-                                 [playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
-                                 
-                                 [[NSNotificationCenter defaultCenter] addObserver:self
-                                                                          selector:@selector(handleAVPlayerItemDidPlayToEndTimeNotification:)
-                                                                              name:AVPlayerItemDidPlayToEndTimeNotification
-                                                                            object:playerItem];
+                                 @synchronized(self) {
+                                     self.playerItem = [AVPlayerItem playerItemWithAsset:asset];
+                                     self.player = [AVPlayer playerWithPlayerItem:playerItem];
+                                     
+                                     [self registerTimeObserver];
+                                     [self loadDuration];
+                                     
+                                     [player addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
+                                     [player addObserver:self forKeyPath:@"rate" options:NSKeyValueObservingOptionNew context:nil];   
+                                                     
+                                     [playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
+                                     [playerItem addObserver:self forKeyPath:@"playbackLikelyToKeepUp" options:NSKeyValueObservingOptionNew context:nil];
+                                     [playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
+                                     
+                                     [[NSNotificationCenter defaultCenter] addObserver:self
+                                                                              selector:@selector(handleAVPlayerItemDidPlayToEndTimeNotification:)
+                                                                                  name:AVPlayerItemDidPlayToEndTimeNotification
+                                                                                object:playerItem];
 
-                                 if (status == IEXAudioPlayerPlaying) {
-                                     [player play];
+                                     if (status == IEXAudioPlayerPlaying) {
+                                         [player play];
+                                     }
                                  }
                              } else if (trackStatus == AVKeyValueStatusFailed) {
                                  [self sendErrorToCallback:[error localizedFailureReason]
@@ -320,19 +325,27 @@ void audioRouteChangeListenerCallback (void *inUserData,
             if (songTitle)  [info setObject:songTitle forKey:MPMediaItemPropertyTitle];
             if (albumTitle)  [info setObject:albumTitle forKey:MPMediaItemPropertyAlbumTitle];
             
-            if (imageUrl) {
-                NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:imageUrl]];
-                NSURLResponse *response = nil;
-                NSError *error = nil;
-                NSData *data = [NSURLConnection sendSynchronousRequest:request 
-                                                      returningResponse:&response 
-                                                                  error:&error];
-
-                if (!error) {
+            if (imageUrl && ![imageUrl isKindOfClass:[NSNull class]]) {
+                NSData *data = nil;
+                if ([imageUrl length] > 23 &&
+                    [[imageUrl substringToIndex:23] isEqualToString:@"data:image/png;base64,"]) {
+                    data = [[imageUrl substringFromIndex:23] base64DecodedData];
+                } else {
+                    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:imageUrl]];
+                    NSURLResponse *response = nil;
+                    NSError *error = nil;
+                    data = [NSURLConnection sendSynchronousRequest:request
+                                                 returningResponse:&response
+                                                             error:&error];                    
+                }
+                
+                if (data != nil) {
                     UIImage *image = [UIImage imageWithData:data];
-                    MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithImage:image];
-                    [info setObject:artwork forKey:MPMediaItemPropertyArtwork];
-                    [artwork release];                    
+                    if(image != nil){
+                        MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithImage:image];
+                        [info setObject:artwork forKey:MPMediaItemPropertyArtwork];
+                        [artwork release];
+                    }
                 }
             }
            
@@ -356,11 +369,13 @@ void audioRouteChangeListenerCallback (void *inUserData,
 }
 
 - (void)observe_AVPlayer_rate {
-    if (player.rate > 0.0) {
+    if (player.rate > 0.0 && player.rate != rate) {
         [self sendEventToCallback:kIEXAudioEventPlay];
-    } else if (player.rate == 0.0 && self.status == IEXAudioPlayerPaused) {
+    } else if (player.rate == 0.0 && self.status == IEXAudioPlayerPaused) {     
         [self sendEventToCallback:kIEXAudioEventPaused];
     }
+    
+   rate = player.rate;
 }
 
 - (void)observe_AVPlayer_status {
@@ -404,6 +419,7 @@ void audioRouteChangeListenerCallback (void *inUserData,
     NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
                            kIEXAudioEventProgress, @"name",
                            ranges, @"ranges", nil];
+    [ranges release];
     [self sendDictionaryToCallback:event];
 }
 

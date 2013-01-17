@@ -37,6 +37,7 @@ extern NSString *kIEXAudioRemoteEventPrevious;
 @interface IEXAudio : CDVPlugin <AVAudioSessionDelegate> {   
     BOOL interrupted;
     id timeObserver;
+    float rate;
     
     IEXAudioPlayerStatus status;
     IEXAudioMediaState readyState;
